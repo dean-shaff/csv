@@ -3,6 +3,9 @@
 #define CSV_H
 
 #include <stdio.h>
+#include <map>
+#include <typeindex>
+#include <typeinfo>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -10,6 +13,12 @@
 using namespace std;
 
 namespace csv {
+
+  map<type_index, string> type_to_str = {
+    {typeid(int), "int"},
+    {typeid(float), "float"},
+    {typeid(double), "double"}
+  };
 
   template <typename T>
   void write_arr_to_file (ofstream& f, T *arr, int arr_size) {
@@ -64,7 +73,6 @@ namespace csv {
           temp_str.push_back(line.at(i));
         }
       }
-      printf("appending to vec\n");
       vec.push_back(line_vec);
   	}
   	f.close();
