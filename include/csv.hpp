@@ -2,7 +2,9 @@
 #ifndef CSV_H
 #define CSV_H
 
+#include <stdio.h>
 #include <vector>
+#include <string>
 #include <fstream>
 
 using namespace std;
@@ -46,17 +48,32 @@ namespace csv {
   	f.close();
   }
 
-  template <typename T, typename A>
-  vector<T, A> read_from_csv (const char * file_name) {
-  	vector<T, A> vec;
+  void read_from_csv (const char * file_name, vector<vector<string>> &vec) {
   	ifstream f;
   	f.open(file_name);
-  	char current_char ;
-  	while (! f.eof()) {
-  		f >> current_char;
+    vector<string> line_vec;
+    string temp_str;
+    string line;
+  	while (getline(f, line)) {
+      // printf("%s\n", line.c_str());
+      for (int i=0; i<line.size(); i++) {
+        if (line.at(i) == ',') {
+          line_vec.push_back(temp_str);
+          temp_str.clear();
+        } else {
+          temp_str.push_back(line.at(i));
+        }
+      }
+      printf("appending to vec\n");
+      vec.push_back(line_vec);
   	}
   	f.close();
-  	return vec;
+  }
+
+  vector<vector<string>> read_from_csv (const char * file_name) {
+    vector<vector<string>> res;
+    read_from_csv(file_name, res);
+    return res;
   }
 }
 
