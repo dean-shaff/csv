@@ -1,3 +1,4 @@
-test_write
-test_read
+test/test_write
+test/test_read
 *.csv
+build/

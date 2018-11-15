@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <map>
+#include <iostream>
 #include <typeindex>
 #include <typeinfo>
 #include <vector>
@@ -14,11 +15,22 @@ using namespace std;
 
 namespace csv {
 
-  map<type_index, string> type_to_str = {
-    {typeid(int), "int"},
-    {typeid(float), "float"},
-    {typeid(double), "double"}
-  };
+  template<typename T>
+  void str_to_number (string str, T &val) {
+    if (typeid(T) == typeid(int)) {
+      val = stoi(str);
+    } else if (typeid(T) == typeid(long)) {
+      val = stol(str);
+    } else if (typeid(T) == typeid(long long)) {
+      val = stoll(str);
+    } else if (typeid(T) == typeid(float)) {
+      val = stof(str);
+    } else if (typeid(T) == typeid(double)) {
+      val = stod(str);
+    } else {
+      cout << typeid(T).name() << " not currently supported" << endl;
+    }
+  }
 
   template <typename T>
   void write_arr_to_file (ofstream& f, T *arr, int arr_size) {
@@ -31,6 +43,12 @@ namespace csv {
   	} else {
   		printf("file not open!\n");
   	}
+  }
+
+  template <typename T>
+  void write_row (ofstream& f, T *arr, int arr_size) {
+    write_arr_to_file(f, arr, arr_size);
+    f << '\n';
   }
 
   template <typename T>
@@ -57,31 +75,40 @@ namespace csv {
   	f.close();
   }
 
-  void read_from_csv (const char * file_name, vector<vector<string>> &vec) {
-  	ifstream f;
-  	f.open(file_name);
-    vector<string> line_vec;
+  template <typename T>
+  bool read_row (ifstream& f, vector<T> &vec) {
+    T temp_var;
     string temp_str;
     string line;
-  	while (getline(f, line)) {
-      // printf("%s\n", line.c_str());
+    if (getline(f, line)) {
       for (int i=0; i<line.size(); i++) {
         if (line.at(i) == ',') {
-          line_vec.push_back(temp_str);
+          csv::str_to_number<T>(temp_str, temp_var);
+          // we don't need to copy the value of `temp_var`
+          // because push_back does it for us!
+          vec.push_back(temp_var);
           temp_str.clear();
         } else {
           temp_str.push_back(line.at(i));
         }
       }
-      vec.push_back(line_vec);
-  	}
-  	f.close();
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  vector<vector<string>> read_from_csv (const char * file_name) {
-    vector<vector<string>> res;
-    read_from_csv(file_name, res);
-    return res;
+
+  template<typename T>
+  void read_from_csv (const char * file_name, vector<vector<T>> &vec) {
+  	ifstream f;
+  	f.open(file_name);
+    vector<T> line_vec;
+  	while (csv::read_row<T>(f, line_vec)) {
+      vec.push_back(line_vec);
+      line_vec.clear();
+  	}
+  	f.close();
   }
 }
 
